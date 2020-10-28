@@ -6,21 +6,8 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
-
-func newRootCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "test",
-		Short: "test",
-		Long:  `test`,
-		Run:   run}
-}
-
-func run(cmd *cobra.Command, args []string) {
-	Log.Info("Starting uploadService")
-}
 
 func TestReadEnvVariable(t *testing.T) {
 	os.Setenv("MESSAGESERVER_URL", "olia")
