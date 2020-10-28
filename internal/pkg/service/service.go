@@ -66,8 +66,7 @@ type durationResult struct {
 }
 
 func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	cmdapp.Log.Infof("Request from %s", r.Host)
-	cmdapp.Log.Infof("Saving file from %s", r.Host)
+	cmdapp.Log.Debugf("Request from %s", r.RemoteAddr)
 
 	r.ParseMultipartForm(32 << 20)
 
