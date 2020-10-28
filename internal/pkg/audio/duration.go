@@ -13,12 +13,13 @@ import (
 
 //Estimator estimates audio duration
 type Estimator struct {
-	dir string
+	estFunc func(string) (float64, error)
 }
 
 //NewEstimator return new estimator instance
 func NewEstimator() (*Estimator, error) {
 	res := Estimator{}
+	res.estFunc = estimate
 	return &res, nil
 }
 
@@ -26,9 +27,9 @@ func NewEstimator() (*Estimator, error) {
 func (e *Estimator) Seconds(name string) (float64, error) {
 	ext := filepath.Ext(name)
 	if ext == ".wav" {
-		return estimate(fmt.Sprintf("sox --i -D %s", name))
+		return e.estFunc(fmt.Sprintf("sox --i -D %s", name))
 	}
-	return estimate(fmt.Sprintf("ffprobe -i %s -show_entries format=duration -v quiet -of csv=p=0", name))
+	return e.estFunc(fmt.Sprintf("ffprobe -i %s -show_entries format=duration -v quiet -of csv=p=0", name))
 }
 
 func estimate(cmdParams string) (float64, error) {
