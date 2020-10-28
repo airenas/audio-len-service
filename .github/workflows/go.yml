@@ -34,3 +34,9 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+
+    - name: Run vet & lint
+      run: |
+        go vet ./...
+        go get -u golang.org/x/lint/golint
+        golint ./...  
