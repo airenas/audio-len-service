@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	goapp.StartWithDefault()
+
 	data := service.Data{}
 	data.Port = goapp.Config.GetInt("port")
 
