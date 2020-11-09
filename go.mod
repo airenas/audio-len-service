@@ -3,6 +3,7 @@ module github.com/airenas/audio-len-service
 go 1.15
 
 require (
+	github.com/airenas/go-app v0.1.0
 	github.com/gogap/env_json v0.0.0-20150503135429-86150085ddbe // indirect
 	github.com/gogap/env_strings v0.0.1 // indirect
 	github.com/google/uuid v1.1.2

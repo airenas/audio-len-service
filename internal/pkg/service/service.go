@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/airenas/audio-len-service/internal/pkg/cmdapp"
+	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -38,7 +38,7 @@ type (
 
 //StartWebServer starts the HTTP service and listens for the admin requests
 func StartWebServer(data *Data) error {
-	cmdapp.Log.Infof("Starting HTTP audio len service at %d", data.Port)
+	goapp.Log.Infof("Starting HTTP audio len service at %d", data.Port)
 	r := NewRouter(data)
 	http.Handle("/", r)
 	portStr := strconv.Itoa(data.Port)
@@ -66,14 +66,14 @@ type durationResult struct {
 }
 
 func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	cmdapp.Log.Debugf("Request from %s", r.RemoteAddr)
+	goapp.Log.Debugf("Request from %s", r.RemoteAddr)
 
 	r.ParseMultipartForm(32 << 20)
 
 	file, handler, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "No file", http.StatusBadRequest)
-		cmdapp.Log.Error(err)
+		goapp.Log.Error(err)
 		return
 	}
 	defer file.Close()
@@ -82,7 +82,7 @@ func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ext = strings.ToLower(ext)
 	if !checkFileExtension(ext) {
 		http.Error(w, "Wrong file extension: "+ext, http.StatusBadRequest)
-		cmdapp.Log.Errorf("Wrong file extension: " + ext)
+		goapp.Log.Errorf("Wrong file extension: " + ext)
 		return
 	}
 
@@ -92,7 +92,7 @@ func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fileName, err = h.data.Saver.Save(fileName, file)
 	if err != nil {
 		http.Error(w, "Can not save file", http.StatusInternalServerError)
-		cmdapp.Log.Error(err)
+		goapp.Log.Error(err)
 		return
 	}
 	defer deleteFile(fileName)
@@ -101,7 +101,7 @@ func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res.Duration, err = h.data.Estimator.Seconds(fileName)
 	if err != nil {
 		http.Error(w, "Can not extract duration", http.StatusInternalServerError)
-		cmdapp.Log.Error(err)
+		goapp.Log.Error(err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
