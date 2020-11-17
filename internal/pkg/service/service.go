@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -68,8 +69,13 @@ type durationResult struct {
 func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	goapp.Log.Debugf("Request from %s", r.RemoteAddr)
 
-	r.ParseMultipartForm(32 << 20)
-
+	err := r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		http.Error(w, "Can't parse form data", http.StatusBadRequest)
+		goapp.Log.Error(err)
+		return
+	}
+	defer cleanFiles(r.MultipartForm)
 	file, handler, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "No file", http.StatusBadRequest)
@@ -119,4 +125,10 @@ func checkFileExtension(ext string) bool {
 
 func deleteFile(file string) {
 	os.RemoveAll(file)
+}
+
+func cleanFiles(f *multipart.Form) {
+	if f != nil {
+		f.RemoveAll()
+	}
 }
