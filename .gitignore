@@ -1,2 +1,4 @@
 go.sum
 .vscode/launch.json
+deploy/data/audio-len
+cmd/audio-len/audio-len
