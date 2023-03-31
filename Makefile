@@ -1,3 +1,4 @@
+-include version
 #####################################################################################
 ## invoke unit tests
 test/unit: 
@@ -15,14 +16,12 @@ build:
 
 run:
 	cd cmd/audio-len/ && go run . -c config.yml	
-
-build/docker:
-	cd deploy && $(MAKE) dbuild	
-
-push/docker:
-	cd deploy && $(MAKE) dpush
-
+############################################
+git/tag:
+	git tag "v$(version)"
+git/push-tag:
+	git push origin --tags
+############################################
 clean:
 	rm -f cmd/audio-len/audio-len
-	cd deploy && $(MAKE) clean
-
+.PHONY: clean
