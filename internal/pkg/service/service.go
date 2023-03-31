@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -13,8 +14,6 @@ import (
 	"github.com/airenas/go-app/pkg/goapp"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 type (
@@ -37,21 +36,21 @@ type (
 	}
 )
 
-//StartWebServer starts the HTTP service and listens for the admin requests
+// StartWebServer starts the HTTP service and listens for the admin requests
 func StartWebServer(data *Data) error {
-	goapp.Log.Infof("Starting HTTP audio len service at %d", data.Port)
+	goapp.Log.Info().Int("port", data.Port).Msg("Starting HTTP audio len service")
 	r := NewRouter(data)
 	http.Handle("/", r)
 	portStr := strconv.Itoa(data.Port)
 	err := http.ListenAndServe(":"+portStr, nil)
 
 	if err != nil {
-		return errors.Wrap(err, "Can't start HTTP listener at port "+portStr)
+		return fmt.Errorf("can't start HTTP listener at port %s: %w", portStr, err)
 	}
 	return nil
 }
 
-//NewRouter creates the router for HTTP service
+// NewRouter creates the router for HTTP service
 func NewRouter(data *Data) *mux.Router {
 	router := mux.NewRouter()
 	router.Methods("POST").Path("/duration").Handler(&durationHandler{data: data})
@@ -67,30 +66,25 @@ type durationResult struct {
 }
 
 func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	goapp.Log.Debugf("Request from %s", r.RemoteAddr)
+	goapp.Log.Debug().Str("remote", r.RemoteAddr).Msg("Request")
 
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
 		http.Error(w, "Can't parse form data", http.StatusBadRequest)
-		goapp.Log.Error(err)
+		goapp.Log.Error().Err(err).Send()
 		return
 	}
 	defer cleanFiles(r.MultipartForm)
 	file, handler, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "No file", http.StatusBadRequest)
-		goapp.Log.Error(err)
+		goapp.Log.Error().Err(err).Send()
 		return
 	}
 	defer file.Close()
 
 	ext := filepath.Ext(handler.Filename)
 	ext = strings.ToLower(ext)
-	if !checkFileExtension(ext) {
-		http.Error(w, "Wrong file extension: "+ext, http.StatusBadRequest)
-		goapp.Log.Errorf("Wrong file extension: " + ext)
-		return
-	}
 
 	id := uuid.New().String()
 	fileName := id + ext
@@ -98,7 +92,7 @@ func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fileName, err = h.data.Saver.Save(fileName, file)
 	if err != nil {
 		http.Error(w, "Can not save file", http.StatusInternalServerError)
-		goapp.Log.Error(err)
+		goapp.Log.Error().Err(err).Send()
 		return
 	}
 	defer deleteFile(fileName)
@@ -107,7 +101,7 @@ func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	res.Duration, err = h.data.Estimator.Seconds(fileName)
 	if err != nil {
 		http.Error(w, "Can not extract duration", http.StatusInternalServerError)
-		goapp.Log.Error(err)
+		goapp.Log.Error().Err(err).Send()
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -115,12 +109,8 @@ func (h *durationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err = encoder.Encode(&res)
 	if err != nil {
 		http.Error(w, "Can not prepare result", http.StatusInternalServerError)
-		logrus.Error(err)
+		goapp.Log.Error().Err(err).Send()
 	}
-}
-
-func checkFileExtension(ext string) bool {
-	return ext == ".wav" || ext == ".mp3" || ext == ".mp4" || ext == ".m4a"
 }
 
 func deleteFile(file string) {

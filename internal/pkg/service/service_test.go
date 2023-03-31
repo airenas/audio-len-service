@@ -68,16 +68,6 @@ func TestReturns_UppercaseFile(t *testing.T) {
 	assert.Equal(t, `{"duration":2}`, strings.TrimSpace(resp.Body.String()))
 }
 
-func TestFails_WrongExtension(t *testing.T) {
-	initTest(t)
-	req := newTestRequest("test.mp")
-	resp := httptest.NewRecorder()
-
-	service.NewRouter(data).ServeHTTP(resp, req)
-
-	assert.Equal(t, 400, resp.Code)
-}
-
 func TestFails_NoFile(t *testing.T) {
 	initTest(t)
 	req := newTestRequest("")

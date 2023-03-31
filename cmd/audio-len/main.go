@@ -7,7 +7,6 @@ import (
 
 	"github.com/airenas/audio-len-service/internal/pkg/service"
 	"github.com/airenas/go-app/pkg/goapp"
-	"github.com/pkg/errors"
 )
 
 func main() {
@@ -19,15 +18,15 @@ func main() {
 	var err error
 	data.Saver, err = file.NewSaver(goapp.Config.GetString("tempDir"))
 	if err != nil {
-		goapp.Log.Fatal(errors.Wrap(err, "Can't init file saver"))
+		goapp.Log.Fatal().Err(err).Msg("can't init file saver")
 	}
 	data.Estimator, err = audio.NewEstimator()
 	if err != nil {
-		goapp.Log.Fatal(errors.Wrap(err, "Can't init audio duration estimator"))
+		goapp.Log.Fatal().Err(err).Msg("can't init audio duration estimator")
 	}
 
 	err = service.StartWebServer(&data)
 	if err != nil {
-		goapp.Log.Fatal(errors.Wrap(err, "Can't start the service"))
+		goapp.Log.Fatal().Err(err).Msg("can't start the service")
 	}
 }
