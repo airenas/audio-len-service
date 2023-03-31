@@ -2,16 +2,18 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/airenas/go-app/pkg/goapp"
+	"github.com/facebookgo/grace/gracehttp"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -40,14 +42,15 @@ type (
 func StartWebServer(data *Data) error {
 	goapp.Log.Info().Int("port", data.Port).Msg("Starting HTTP audio len service")
 	r := NewRouter(data)
-	http.Handle("/", r)
 	portStr := strconv.Itoa(data.Port)
-	err := http.ListenAndServe(":"+portStr, nil)
 
-	if err != nil {
-		return fmt.Errorf("can't start HTTP listener at port %s: %w", portStr, err)
-	}
-	return nil
+	gracehttp.SetLogger(log.New(goapp.Log, "", 0))
+	return gracehttp.Serve(&http.Server{
+		Addr:        ":" + portStr,
+		IdleTimeout: 10 * time.Minute, ReadHeaderTimeout: 20 * time.Second,
+		ReadTimeout: 8 * time.Minute, WriteTimeout: 15 * time.Minute,
+		Handler: r,
+	})
 }
 
 // NewRouter creates the router for HTTP service
