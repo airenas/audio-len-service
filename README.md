@@ -8,7 +8,7 @@ To test the service look into [examples/docker-compose](examples/docker-compose)
 
 ```bash
     cd examples/docker-compose
-    docker-compose up -d
+    docker compose up -d
     curl -X POST http://localhost:8003/duration -H 'content-type: multipart/form-data' -F file=@1.mp3
 ```
 
