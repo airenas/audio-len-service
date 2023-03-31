@@ -22,7 +22,7 @@ The result is in seconds:
 
 ## License
 
-Copyright © 2020, [Airenas Vaičiūnas](https://github.com/airenas).
+Copyright © 2023, [Airenas Vaičiūnas](https://github.com/airenas).
 
 Released under the [The 3-Clause BSD License](LICENSE).
 
